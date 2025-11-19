@@ -1,0 +1,85 @@
+[project]
+name = "django-testcontainers-plus"
+version = "0.1.1"
+description = "A plug-and-play testcontainers integration for Django - supports databases, Redis, MinIO, and more"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Andrew Woodward", email = "arwoodward553@gmail.com" }
+]
+requires-python = ">=3.10"
+keywords = ["django", "testcontainers", "testing", "docker", "containers", "postgres", "mysql", "redis"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "django>=4.2",
+    "testcontainers>=4.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-django>=4.5.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.8.0",
+    "mypy>=1.8.0",
+    "django-stubs>=4.2.0",
+]
+postgres = []
+mysql = []
+redis = []
+mongodb = []
+all = []
+
+[project.urls]
+Homepage = "https://github.com/woodywoodster/django-testcontainers-plus"
+Repository = "https://github.com/woodywoodster/django-testcontainers-plus"
+Documentation = "https://github.com/woodywoodster/django-testcontainers-plus#readme"
+Issues = "https://github.com/woodywoodster/django-testcontainers-plus/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "PT"]
+ignore = []
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "tests.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.settings"
+python_files = ["test_*.py", "*_test.py"]
+addopts = [
+    "--cov=django_testcontainers_plus",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+]
