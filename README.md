@@ -18,6 +18,8 @@ Testing Django applications often requires external services like PostgreSQL, Re
 
 ## Installation
 
+### Basic Installation
+
 ```bash
 # Using uv (recommended)
 uv add django-testcontainers-plus
@@ -25,6 +27,29 @@ uv add django-testcontainers-plus
 # Using pip
 pip install django-testcontainers-plus
 ```
+
+### With Optional Database Support
+
+Django Testcontainers Plus requires database-specific Python clients for certain databases:
+
+```bash
+# PostgreSQL support (includes psycopg)
+pip install django-testcontainers-plus[postgres]
+
+# MySQL/MariaDB support
+pip install django-testcontainers-plus[mysql]
+
+# Redis support
+pip install django-testcontainers-plus[redis]
+
+# MongoDB support
+pip install django-testcontainers-plus[mongodb]
+
+# Install all database clients
+pip install django-testcontainers-plus[all]
+```
+
+**Note**: PostgreSQL containers work without the `[postgres]` extra, but installing it provides better performance and compatibility with modern Django PostgreSQL backends.
 
 ## Quick Start
 
@@ -216,6 +241,82 @@ Both PostgreSQL and Redis containers will start automatically!
 4. **Injection**: Updates Django settings with container connection details
 5. **Cleanup**: Stops and removes containers after tests complete
 
+## Troubleshooting
+
+### Missing Dependency Errors
+
+If you see an error like this:
+
+```
+======================================================================
+MySQL Support Not Installed
+======================================================================
+
+MySQL was detected in your Django settings:
+  → DATABASES['default']['ENGINE']
+
+To enable MySQL support, install the required dependencies:
+  pip install django-testcontainers-plus[mysql]
+
+Or install all providers:
+  pip install django-testcontainers-plus[all]
+======================================================================
+```
+
+**What happened?** Django Testcontainers Plus detected that you're using MySQL in your settings, but the MySQL client library (`mysql-connector-python`) isn't installed.
+
+**Solution:** Install the extra for your database:
+
+```bash
+# For MySQL/MariaDB
+pip install django-testcontainers-plus[mysql]
+
+# For Redis
+pip install django-testcontainers-plus[redis]
+
+# For MongoDB
+pip install django-testcontainers-plus[mongodb]
+
+# Or install everything
+pip install django-testcontainers-plus[all]
+```
+
+### Common Issues
+
+**Q: Why do I need extras for some databases but not Postgres?**
+
+A: PostgreSQL works without extras because the base `testcontainers` package includes PostgreSQL support. MySQL, Redis, and MongoDB require their respective Python client libraries.
+
+**Q: Can I disable auto-detection?**
+
+A: Yes! Set `auto: False` in your configuration:
+
+```python
+TESTCONTAINERS = {
+    'mysql': {
+        'auto': False,  # Won't auto-detect MySQL
+        'enabled': False,  # Explicitly disable
+    }
+}
+```
+
+**Q: The error message says a service was detected, but I don't use it**
+
+A: Check your settings for Redis/MySQL/Mongo references in:
+- `DATABASES` - Database engines
+- `CACHES` - Cache backends
+- `CELERY_BROKER_URL` - Celery broker
+- `SESSION_ENGINE` - Session storage
+
+You can disable detection for that service with `auto: False`.
+
+**Q: Tests work locally but fail in CI**
+
+A: Make sure your CI environment has:
+1. Docker available (most CI providers include it)
+2. The correct extras installed: `pip install django-testcontainers-plus[all]`
+3. Sufficient permissions to run Docker containers
+
 ## Development
 
 This project uses [uv](https://github.com/astral-sh/uv) for package management.
@@ -225,8 +326,8 @@ This project uses [uv](https://github.com/astral-sh/uv) for package management.
 git clone https://github.com/woodywoodster/django-testcontainers-plus
 cd django-testcontainers-plus
 
-# Install dependencies
-uv sync --dev
+# Install dependencies (including all optional database clients)
+uv sync --all-extras --dev
 
 # Run tests
 uv run pytest
