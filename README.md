@@ -11,7 +11,7 @@ Testing Django applications often requires external services like PostgreSQL, Re
 
 - **Zero Configuration**: Automatically detects your database and service needs from Django settings
 - **Plug and Play**: Install, add to settings, and go - no manual container management
-- **Database Agnostic**: Supports PostgreSQL, MySQL, MariaDB, MongoDB, and more
+- **Database Agnostic**: Supports PostgreSQL, MySQL, MariaDB, and more
 - **Beyond Databases**: Redis for caching, MinIO for S3, and other services
 - **Dual Compatibility**: Works with both Django's test runner and pytest
 - **Smart Defaults**: Sensible defaults with full customization when needed
@@ -28,28 +28,20 @@ uv add django-testcontainers-plus
 pip install django-testcontainers-plus
 ```
 
-### With Optional Database Support
-
-Django Testcontainers Plus requires database-specific Python clients for certain databases:
+### Optional Extras for containers
 
 ```bash
-# PostgreSQL support (includes psycopg)
-pip install django-testcontainers-plus[postgres]
-
 # MySQL/MariaDB support
 pip install django-testcontainers-plus[mysql]
 
 # Redis support
 pip install django-testcontainers-plus[redis]
 
-# MongoDB support
-pip install django-testcontainers-plus[mongodb]
-
-# Install all database clients
+# Or install both
 pip install django-testcontainers-plus[all]
 ```
 
-**Note**: PostgreSQL containers work without the `[postgres]` extra, but installing it provides better performance and compatibility with modern Django PostgreSQL backends.
+**Note** Postgres works by default so doesn't need to be installed like the above
 
 ## Quick Start
 
@@ -274,9 +266,6 @@ pip install django-testcontainers-plus[mysql]
 # For Redis
 pip install django-testcontainers-plus[redis]
 
-# For MongoDB
-pip install django-testcontainers-plus[mongodb]
-
 # Or install everything
 pip install django-testcontainers-plus[all]
 ```
@@ -285,7 +274,7 @@ pip install django-testcontainers-plus[all]
 
 **Q: Why do I need extras for some databases but not Postgres?**
 
-A: PostgreSQL works without extras because the base `testcontainers` package includes PostgreSQL support. MySQL, Redis, and MongoDB require their respective Python client libraries.
+A: PostgreSQL works without extras because the base `testcontainers` package includes PostgreSQL support. MySQL and Redis require their respective Python client libraries.
 
 **Q: Can I disable auto-detection?**
 
@@ -302,7 +291,8 @@ TESTCONTAINERS = {
 
 **Q: The error message says a service was detected, but I don't use it**
 
-A: Check your settings for Redis/MySQL/Mongo references in:
+A: Check your settings for Redis/MySQL references in:
+
 - `DATABASES` - Database engines
 - `CACHES` - Cache backends
 - `CELERY_BROKER_URL` - Celery broker
@@ -313,6 +303,7 @@ You can disable detection for that service with `auto: False`.
 **Q: Tests work locally but fail in CI**
 
 A: Make sure your CI environment has:
+
 1. Docker available (most CI providers include it)
 2. The correct extras installed: `pip install django-testcontainers-plus[all]`
 3. Sufficient permissions to run Docker containers
