@@ -78,6 +78,10 @@ warn_unused_configs = true
 disallow_untyped_defs = true
 plugins = ["mypy_django_plugin.main"]
 
+[[tool.mypy.overrides]]
+module = "testcontainers.*"
+ignore_missing_imports = true
+
 [tool.django-stubs]
 django_settings_module = "tests.settings"
 

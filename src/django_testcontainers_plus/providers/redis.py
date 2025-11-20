@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from testcontainers.core.generic import DockerContainer
 from testcontainers.redis import RedisContainer
@@ -50,10 +50,10 @@ class RedisProvider(ContainerProvider):
         port = container.get_exposed_port(6379)
         redis_url = f"redis://{host}:{port}/0"
 
-        updates = {}
+        updates: dict[str, Any] = {}
 
         if "update_settings" in config:
-            return config["update_settings"]
+            return cast(dict[str, Any], config["update_settings"])
 
         caches = getattr(settings, "CACHES", {})
         for cache_name, cache_config in caches.items():

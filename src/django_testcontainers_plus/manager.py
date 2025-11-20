@@ -57,9 +57,11 @@ class ContainerManager:
         for provider_name in config.keys():
             provider_config = config[provider_name]
             if provider_config.get("enabled", True):
-                provider = next((p for p in self.providers if p.name == provider_name), None)
-                if provider and provider not in needed_providers:
-                    needed_providers.append(provider)
+                found_provider: ContainerProvider | None = next(
+                    (p for p in self.providers if p.name == provider_name), None
+                )
+                if found_provider is not None and found_provider not in needed_providers:
+                    needed_providers.append(found_provider)
 
         self._check_unavailable_providers()
 
@@ -73,7 +75,7 @@ class ContainerManager:
         """
         needed_providers = self.detect_needed_containers()
         config = self.get_testcontainers_config()
-        all_updates = {}
+        all_updates: dict[str, Any] = {}
 
         for provider in needed_providers:
             provider_config = {
