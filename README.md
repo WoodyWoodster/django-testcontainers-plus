@@ -2,7 +2,7 @@
 
 A plug-and-play testcontainers integration for Django
 
-[![PyPI version](https://badge.fury.io/py/django-testcontainers-plus.svg)](https://badge.fury.io/py/django-testcontainers-plus)
+[![PyPI version](https://img.shields.io/pypi/v/django-testcontainers-plus.svg)](https://pypi.org/project/django-testcontainers-plus/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Why Django Testcontainers Plus?
