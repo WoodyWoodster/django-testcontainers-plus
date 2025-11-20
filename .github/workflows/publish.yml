@@ -85,7 +85,7 @@ jobs:
 
       - name: Test package installation
         run: |
-          uv pip install dist/*.whl
+          uv pip install --system dist/*.whl
           python -c "import django_testcontainers_plus; print(f'Version: {django_testcontainers_plus.__version__}')"
 
   publish-pypi:
