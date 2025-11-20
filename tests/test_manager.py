@@ -1,8 +1,6 @@
 """Tests for ContainerManager."""
 
-from unittest.mock import Mock, patch
-
-import pytest
+from unittest.mock import Mock
 
 from django_testcontainers_plus.manager import ContainerManager
 from django_testcontainers_plus.providers.base import ContainerProvider

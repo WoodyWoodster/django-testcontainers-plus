@@ -55,9 +55,10 @@ class MissingDependencyError(DjangoTestcontainersError):
         )
 
         if self.original_error:
+            error_type = type(self.original_error).__name__
             lines.extend(
                 [
-                    f"\nOriginal error: {type(self.original_error).__name__}: {self.original_error}",
+                    f"\nOriginal error: {error_type}: {self.original_error}",
                 ]
             )
 

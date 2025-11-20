@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock, patch
 
-import pytest
-
 from django_testcontainers_plus.providers.postgres import PostgresProvider
 
 
@@ -114,7 +112,7 @@ class TestPostgresProvider:
         mock_container_instance = Mock()
         mock_postgres_container.return_value = mock_container_instance
 
-        container = provider.get_container(config)
+        provider.get_container(config)
 
         mock_postgres_container.assert_called_once_with(
             image="postgres:15-alpine",
@@ -138,7 +136,7 @@ class TestPostgresProvider:
         mock_container_instance.with_env = Mock(return_value=mock_container_instance)
         mock_postgres_container.return_value = mock_container_instance
 
-        container = provider.get_container(config)
+        provider.get_container(config)
 
         assert mock_container_instance.with_env.call_count == 2
         mock_container_instance.with_env.assert_any_call(

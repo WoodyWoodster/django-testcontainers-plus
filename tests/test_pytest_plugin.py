@@ -1,8 +1,7 @@
 """Tests for pytest plugin."""
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
-import pytest
 from django.conf import settings as django_settings
 
 from django_testcontainers_plus import pytest_plugin
@@ -46,7 +45,7 @@ class TestPytestPlugin:
         """Test that original settings are preserved."""
         original_value = getattr(django_settings, "TEST_ORIGINAL", None)
 
-        setattr(django_settings, "TEST_ORIGINAL", "original")
+        django_settings.TEST_ORIGINAL = "original"
         updates = {"TEST_ORIGINAL": "updated"}
 
         pytest_plugin._original_settings.clear()
@@ -56,7 +55,7 @@ class TestPytestPlugin:
         assert django_settings.TEST_ORIGINAL == "updated"
 
         if original_value is not None:
-            setattr(django_settings, "TEST_ORIGINAL", original_value)
+            django_settings.TEST_ORIGINAL = original_value
         elif hasattr(django_settings, "TEST_ORIGINAL"):
             delattr(django_settings, "TEST_ORIGINAL")
 
@@ -67,8 +66,8 @@ class TestPytestPlugin:
             "TEST_NEW": None,
         }
 
-        setattr(django_settings, "TEST_RESTORE", "updated_value")
-        setattr(django_settings, "TEST_NEW", "new_value")
+        django_settings.TEST_RESTORE = "updated_value"
+        django_settings.TEST_NEW = "new_value"
 
         pytest_plugin._restore_settings()
 
@@ -102,7 +101,7 @@ class TestPytestPlugin:
 
     def test_apply_settings_updates_non_dict_original(self):
         """Test applying dict update when original setting is not a dict."""
-        setattr(django_settings, "NON_DICT_SETTING", "string_value")
+        django_settings.NON_DICT_SETTING = "string_value"
         updates = {"NON_DICT_SETTING": {"key": "value"}}
 
         pytest_plugin._original_settings.clear()

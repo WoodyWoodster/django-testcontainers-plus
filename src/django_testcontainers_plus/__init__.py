@@ -14,16 +14,16 @@ __all__ = [
     "MissingDependencyError",
 ]
 
-try:
-    from .providers import MySQLProvider
-
-    __all__.append("MySQLProvider")
-except ImportError:
-    pass
-
-try:
-    from .providers import RedisProvider
-
-    __all__.append("RedisProvider")
-except ImportError:
-    pass
+# try:
+#     from .providers import MySQLProvider
+#
+#     __all__.append("MySQLProvider")
+# except ImportError:
+#     pass
+#
+# try:
+#     from .providers import RedisProvider
+#
+#     __all__.append("RedisProvider")
+# except ImportError:
+#     pass
