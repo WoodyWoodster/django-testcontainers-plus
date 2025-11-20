@@ -42,11 +42,16 @@ dev = [
     "mypy>=1.8.0",
     "django-stubs>=4.2.0",
 ]
-postgres = []
-mysql = []
-redis = []
-mongodb = []
-all = []
+mysql = [
+    "mysql-connector-python>=8.0.0",
+]
+redis = [
+    "redis>=5.0.0",
+]
+all = [
+    "mysql-connector-python>=8.0.0",
+    "redis>=5.0.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/woodywoodster/django-testcontainers-plus"
@@ -78,9 +83,13 @@ django_settings_module = "tests.settings"
 
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "tests.settings"
+pythonpath = ["."]
 python_files = ["test_*.py", "*_test.py"]
 addopts = [
     "--cov=django_testcontainers_plus",
     "--cov-report=term-missing",
     "--cov-report=html",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning:testcontainers.*",
 ]
