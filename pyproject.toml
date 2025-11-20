@@ -29,6 +29,7 @@ classifiers = [
 ]
 dependencies = [
     "django>=4.2",
+    "pytest>=9.0.1",
     "testcontainers>=4.0.0",
 ]
 

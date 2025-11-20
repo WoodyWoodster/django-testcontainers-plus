@@ -1,5 +1,3 @@
-"""Container providers for various services."""
-
 from .base import ContainerProvider
 from .mysql import MySQLProvider
 from .postgres import PostgresProvider

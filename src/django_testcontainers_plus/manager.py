@@ -1,6 +1,4 @@
-"""Container manager for orchestrating test containers."""
-
-from typing import Any, Dict, List
+from typing import Any
 
 from testcontainers.core.generic import DockerContainer
 
@@ -17,11 +15,11 @@ class ContainerManager:
             settings: Django settings module
         """
         self.settings = settings
-        self.providers: List[ContainerProvider] = PROVIDER_REGISTRY
-        self.active_containers: Dict[str, DockerContainer] = {}
-        self.settings_updates: Dict[str, Any] = {}
+        self.providers: list[ContainerProvider] = PROVIDER_REGISTRY
+        self.active_containers: dict[str, DockerContainer] = {}
+        self.settings_updates: dict[str, Any] = {}
 
-    def get_testcontainers_config(self) -> Dict[str, Any]:
+    def get_testcontainers_config(self) -> dict[str, Any]:
         """Get TESTCONTAINERS configuration from settings.
 
         Returns:
@@ -29,7 +27,7 @@ class ContainerManager:
         """
         return getattr(self.settings, "TESTCONTAINERS", {})
 
-    def detect_needed_containers(self) -> List[ContainerProvider]:
+    def detect_needed_containers(self) -> list[ContainerProvider]:
         """Detect which containers are needed based on settings.
 
         Returns:
@@ -41,32 +39,29 @@ class ContainerManager:
         for provider in self.providers:
             provider_config = config.get(provider.name, {})
 
-            # Check if explicitly enabled/disabled
             if "enabled" in provider_config:
                 if provider_config["enabled"]:
                     needed_providers.append(provider)
                 continue
 
-            # Check if auto-detection is disabled
             if provider_config.get("auto", True) is False:
                 continue
 
-            # Auto-detect if the service is needed
             if provider.can_auto_detect(self.settings):
                 needed_providers.append(provider)
 
-        # Also check for explicitly configured providers not in auto-detect
         for provider_name in config.keys():
             provider_config = config[provider_name]
             if provider_config.get("enabled", True):
-                # Find the provider
-                provider = next((p for p in self.providers if p.name == provider_name), None)
+                provider = next(
+                    (p for p in self.providers if p.name == provider_name), None
+                )
                 if provider and provider not in needed_providers:
                     needed_providers.append(provider)
 
         return needed_providers
 
-    def start_containers(self) -> Dict[str, Any]:
+    def start_containers(self) -> dict[str, Any]:
         """Start all needed containers.
 
         Returns:
@@ -77,23 +72,20 @@ class ContainerManager:
         all_updates = {}
 
         for provider in needed_providers:
-            # Get provider config with defaults
             provider_config = {
                 **provider.get_default_config(),
                 **config.get(provider.name, {}),
             }
 
-            # Create and start container
             container = provider.get_container(provider_config)
             container.start()
 
-            # Store reference
             self.active_containers[provider.name] = container
 
-            # Get settings updates
-            updates = provider.update_settings(container, self.settings, provider_config)
+            updates = provider.update_settings(
+                container, self.settings, provider_config
+            )
 
-            # Merge updates
             self._merge_updates(all_updates, updates)
 
         self.settings_updates = all_updates
@@ -105,12 +97,11 @@ class ContainerManager:
             try:
                 container.stop()
             except Exception:
-                # Best effort cleanup
-                pass
+                ...
 
         self.active_containers.clear()
 
-    def _merge_updates(self, target: Dict[str, Any], updates: Dict[str, Any]) -> None:
+    def _merge_updates(self, target: dict[str, Any], updates: dict[str, Any]) -> None:
         """Deep merge settings updates.
 
         Args:
@@ -118,8 +109,11 @@ class ContainerManager:
             updates: Updates to merge
         """
         for key, value in updates.items():
-            if key in target and isinstance(target[key], dict) and isinstance(value, dict):
-                # Deep merge dicts
+            if (
+                key in target
+                and isinstance(target[key], dict)
+                and isinstance(value, dict)
+            ):
                 self._merge_updates(target[key], value)
             else:
                 target[key] = value

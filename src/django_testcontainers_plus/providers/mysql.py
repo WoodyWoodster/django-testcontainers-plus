@@ -1,6 +1,4 @@
-"""MySQL container provider."""
-
-from typing import Any, Dict
+from typing import Any
 
 from testcontainers.core.generic import DockerContainer
 from testcontainers.mysql import MySqlContainer
@@ -19,12 +17,13 @@ class MySQLProvider(ContainerProvider):
         """Detect MySQL/MariaDB database from DATABASES setting."""
         databases = getattr(settings, "DATABASES", {})
         return any(
-            "mysql" in db.get("ENGINE", "").lower() or "mariadb" in db.get("ENGINE", "").lower()
+            "mysql" in db.get("ENGINE", "").lower()
+            or "mariadb" in db.get("ENGINE", "").lower()
             for db in databases.values()
             if isinstance(db, dict)
         )
 
-    def get_container(self, config: Dict[str, Any]) -> DockerContainer:
+    def get_container(self, config: dict[str, Any]) -> DockerContainer:
         """Create MySQL container with configuration."""
         image = config.get("image", "mysql:8")
         username = config.get("username", "test")
@@ -38,7 +37,6 @@ class MySQLProvider(ContainerProvider):
             dbname=dbname,
         )
 
-        # Apply additional environment variables if provided
         env = config.get("environment", {})
         for key, value in env.items():
             container = container.with_env(key, value)
@@ -46,17 +44,15 @@ class MySQLProvider(ContainerProvider):
         return container
 
     def update_settings(
-        self, container: DockerContainer, settings: Any, config: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, container: DockerContainer, settings: Any, config: dict[str, Any]
+    ) -> dict[str, Any]:
         """Update DATABASES setting with container connection info."""
-        # Get connection details from container
         host = container.get_container_host_ip()
         port = container.get_exposed_port(3306)
         username = config.get("username", "test")
         password = config.get("password", "test")
         dbname = config.get("dbname", "test")
 
-        # Find which database(s) use MySQL/MariaDB
         databases = getattr(settings, "DATABASES", {})
         updates = {}
 
@@ -64,7 +60,6 @@ class MySQLProvider(ContainerProvider):
             if isinstance(db_config, dict):
                 engine = db_config.get("ENGINE", "")
                 if "mysql" in engine.lower() or "mariadb" in engine.lower():
-                    # Update this database configuration
                     if "DATABASES" not in updates:
                         updates["DATABASES"] = {}
                     updates["DATABASES"][db_name] = {
@@ -78,7 +73,7 @@ class MySQLProvider(ContainerProvider):
 
         return updates
 
-    def get_default_config(self) -> Dict[str, Any]:
+    def get_default_config(self) -> dict[str, Any]:
         return {
             "image": "mysql:8",
             "username": "test",

@@ -1,6 +1,4 @@
-"""Django test runner with testcontainers integration."""
-
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from django.conf import settings
 from django.test.runner import DiscoverRunner
@@ -32,33 +30,27 @@ class TestcontainersRunner(DiscoverRunner):
     def __init__(self, *args: Any, **kwargs: Any):
         """Initialize the test runner."""
         super().__init__(*args, **kwargs)
-        self.container_manager: Optional[ContainerManager] = None
-        self.original_settings: Dict[str, Any] = {}
+        self.container_manager: ContainerManager | None = None
+        self.original_settings: dict[str, Any] = {}
 
     def setup_test_environment(self, **kwargs: Any) -> None:
         """Set up test environment and start containers."""
         super().setup_test_environment(**kwargs)
 
-        # Initialize container manager
         self.container_manager = ContainerManager(settings)
 
-        # Start containers and get settings updates
         settings_updates = self.container_manager.start_containers()
 
-        # Apply settings updates
         self._apply_settings_updates(settings_updates)
 
-        # Log what was started
         if self.verbosity >= 1:
             for provider_name in self.container_manager.active_containers.keys():
                 print(f"Started {provider_name} container for testing")
 
     def teardown_test_environment(self, **kwargs: Any) -> None:
         """Tear down test environment and stop containers."""
-        # Restore original settings
         self._restore_settings()
 
-        # Stop containers
         if self.container_manager:
             if self.verbosity >= 1:
                 print("Stopping test containers...")
@@ -66,20 +58,17 @@ class TestcontainersRunner(DiscoverRunner):
 
         super().teardown_test_environment(**kwargs)
 
-    def _apply_settings_updates(self, updates: Dict[str, Any]) -> None:
+    def _apply_settings_updates(self, updates: dict[str, Any]) -> None:
         """Apply settings updates and save originals for restoration.
 
         Args:
             updates: Dict of settings to update
         """
         for key, value in updates.items():
-            # Save original value
             if key not in self.original_settings:
                 self.original_settings[key] = getattr(settings, key, None)
 
-            # Apply update
             if isinstance(value, dict) and hasattr(settings, key):
-                # Deep merge for dict settings like DATABASES, CACHES
                 original = getattr(settings, key, {})
                 if isinstance(original, dict):
                     merged = {**original, **value}
