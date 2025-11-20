@@ -51,8 +51,7 @@ jobs:
           version: "latest"
 
       - name: Build package
-        run: |
-          uv build
+        run: make build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -116,8 +115,7 @@ jobs:
       - name: Publish to PyPI
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          uv publish
+        run: make publish
 
   create-release:
     name: Create GitHub Release
