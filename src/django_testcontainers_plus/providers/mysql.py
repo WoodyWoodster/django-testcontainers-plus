@@ -17,8 +17,7 @@ class MySQLProvider(ContainerProvider):
         """Detect MySQL/MariaDB database from DATABASES setting."""
         databases = getattr(settings, "DATABASES", {})
         return any(
-            "mysql" in db.get("ENGINE", "").lower()
-            or "mariadb" in db.get("ENGINE", "").lower()
+            "mysql" in db.get("ENGINE", "").lower() or "mariadb" in db.get("ENGINE", "").lower()
             for db in databases.values()
             if isinstance(db, dict)
         )
@@ -54,7 +53,7 @@ class MySQLProvider(ContainerProvider):
         dbname = config.get("dbname", "test")
 
         databases = getattr(settings, "DATABASES", {})
-        updates = {}
+        updates: dict[str, Any] = {}
 
         for db_name, db_config in databases.items():
             if isinstance(db_config, dict):

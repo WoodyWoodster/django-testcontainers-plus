@@ -54,7 +54,7 @@ class PostgresProvider(ContainerProvider):
         dbname = config.get("dbname", "test")
 
         databases = getattr(settings, "DATABASES", {})
-        updates = {}
+        updates: dict[str, Any] = {}
 
         for db_name, db_config in databases.items():
             if isinstance(db_config, dict):

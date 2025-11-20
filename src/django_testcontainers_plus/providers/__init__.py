@@ -1,19 +1,31 @@
 from .base import ContainerProvider
-from .mysql import MySQLProvider
 from .postgres import PostgresProvider
-from .redis import RedisProvider
 
 __all__ = [
     "ContainerProvider",
     "PostgresProvider",
-    "MySQLProvider",
-    "RedisProvider",
     "PROVIDER_REGISTRY",
+    "UNAVAILABLE_PROVIDERS",
 ]
 
-# Registry of all available providers
-PROVIDER_REGISTRY = [
+PROVIDER_REGISTRY: list[ContainerProvider] = [
     PostgresProvider(),
-    MySQLProvider(),
-    RedisProvider(),
 ]
+
+UNAVAILABLE_PROVIDERS: dict[str, tuple[str, Exception]] = {}
+
+try:
+    from .mysql import MySQLProvider
+
+    PROVIDER_REGISTRY.append(MySQLProvider())
+    __all__.append("MySQLProvider")
+except ImportError as e:
+    UNAVAILABLE_PROVIDERS["mysql"] = ("mysql", e)
+
+try:
+    from .redis import RedisProvider
+
+    PROVIDER_REGISTRY.append(RedisProvider())
+    __all__.append("RedisProvider")
+except ImportError as e:
+    UNAVAILABLE_PROVIDERS["redis"] = ("redis", e)

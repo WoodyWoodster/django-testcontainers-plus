@@ -1,4 +1,5 @@
-from typing import Any, Dict, Generator
+from collections.abc import Generator
+from typing import Any
 
 import pytest
 from django.conf import settings
