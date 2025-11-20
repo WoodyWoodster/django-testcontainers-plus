@@ -33,8 +33,7 @@ jobs:
           uv sync --all-extras --dev
 
       - name: Run pytest tests
-        run: |
-          uv run pytest tests/ -v --cov=django_testcontainers_plus --cov-report=xml --cov-report=term
+        run: make coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -111,17 +110,11 @@ jobs:
         run: |
           uv sync --all-extras --dev
 
-      - name: Run ruff linting
-        run: |
-          uv run ruff check src/ tests/
+      - name: Run linting
+        run: make lint
 
-      - name: Run ruff formatting check
-        run: |
-          uv run ruff format --check src/ tests/
-
-      - name: Run mypy type checking
-        run: |
-          uv run mypy src/
+      - name: Run type checking
+        run: make typecheck
 
   all-checks:
     name: All Checks Passed
