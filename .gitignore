@@ -8,3 +8,18 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Testing and coverage
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.pytest_cache/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
