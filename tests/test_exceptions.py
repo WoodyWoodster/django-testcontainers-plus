@@ -82,9 +82,7 @@ class TestContainerManagerErrorHandling:
             ("mysql", ("mysql", ImportError("No module named 'MySQLdb'")))
         ]
 
-        settings = MockSettings(
-            DATABASES={"default": {"ENGINE": "django.db.backends.mysql"}}
-        )
+        settings = MockSettings(DATABASES={"default": {"ENGINE": "django.db.backends.mysql"}})
         manager = ContainerManager(settings)
 
         with pytest.raises(MissingDependencyError) as exc_info:
@@ -104,9 +102,7 @@ class TestContainerManagerErrorHandling:
         ]
 
         settings = MockSettings(
-            CACHES={
-                "default": {"BACKEND": "django.core.cache.backends.redis.RedisCache"}
-            }
+            CACHES={"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache"}}
         )
         manager = ContainerManager(settings)
 
@@ -163,9 +159,7 @@ class TestContainerManagerErrorHandling:
         ]
 
         # PostgreSQL settings, MySQL not needed
-        settings = MockSettings(
-            DATABASES={"default": {"ENGINE": "django.db.backends.postgresql"}}
-        )
+        settings = MockSettings(DATABASES={"default": {"ENGINE": "django.db.backends.postgresql"}})
         manager = ContainerManager(settings)
 
         # Should not raise

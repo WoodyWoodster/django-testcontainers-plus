@@ -57,9 +57,7 @@ class ContainerManager:
         for provider_name in config.keys():
             provider_config = config[provider_name]
             if provider_config.get("enabled", True):
-                provider = next(
-                    (p for p in self.providers if p.name == provider_name), None
-                )
+                provider = next((p for p in self.providers if p.name == provider_name), None)
                 if provider and provider not in needed_providers:
                     needed_providers.append(provider)
 
@@ -88,9 +86,7 @@ class ContainerManager:
 
             self.active_containers[provider.name] = container
 
-            updates = provider.update_settings(
-                container, self.settings, provider_config
-            )
+            updates = provider.update_settings(container, self.settings, provider_config)
 
             self._merge_updates(all_updates, updates)
 
@@ -115,11 +111,7 @@ class ContainerManager:
             updates: Updates to merge
         """
         for key, value in updates.items():
-            if (
-                key in target
-                and isinstance(target[key], dict)
-                and isinstance(value, dict)
-            ):
+            if key in target and isinstance(target[key], dict) and isinstance(value, dict):
                 self._merge_updates(target[key], value)
             else:
                 target[key] = value
@@ -207,9 +199,7 @@ class ContainerManager:
             detected_in: Where the provider was detected
         """
         # Capitalize provider name for display
-        display_name = (
-            provider_name.upper() if provider_name == "mysql" else provider_name.title()
-        )
+        display_name = provider_name.upper() if provider_name == "mysql" else provider_name.title()
 
         raise MissingDependencyError(
             provider_name=display_name,

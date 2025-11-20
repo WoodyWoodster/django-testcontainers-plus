@@ -41,9 +41,7 @@ class MissingDependencyError(DjangoTestcontainersError):
                 ]
             )
         else:
-            lines.append(
-                f"\n{self.provider_name} is configured but dependencies are missing."
-            )
+            lines.append(f"\n{self.provider_name} is configured but dependencies are missing.")
 
         lines.extend(
             [

@@ -139,9 +139,7 @@ class TestPostgresProvider:
         provider.get_container(config)
 
         assert mock_container_instance.with_env.call_count == 2
-        mock_container_instance.with_env.assert_any_call(
-            "POSTGRES_INITDB_ARGS", "--encoding=UTF-8"
-        )
+        mock_container_instance.with_env.assert_any_call("POSTGRES_INITDB_ARGS", "--encoding=UTF-8")
         mock_container_instance.with_env.assert_any_call("TZ", "UTC")
 
     def test_update_settings_single_database(self):
