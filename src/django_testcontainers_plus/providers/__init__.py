@@ -29,3 +29,11 @@ try:
     __all__.append("RedisProvider")
 except ImportError as e:
     UNAVAILABLE_PROVIDERS["redis"] = ("redis", e)
+
+try:
+    from .minio import MinioProvider
+
+    PROVIDER_REGISTRY.append(MinioProvider())
+    __all__.append("MinioProvider")
+except ImportError as e:
+    UNAVAILABLE_PROVIDERS["minio"] = ("minio", e)

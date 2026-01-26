@@ -49,9 +49,15 @@ mysql = [
 redis = [
     "redis>=5.0.0",
 ]
+minio = [
+    "minio>=7.0.0",
+    "boto3>=1.26.0",
+]
 all = [
     "mysql-connector-python>=8.0.0",
     "redis>=5.0.0",
+    "minio>=7.0.0",
+    "boto3>=1.26.0",
 ]
 
 [project.urls]
