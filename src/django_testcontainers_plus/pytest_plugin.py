@@ -3,12 +3,30 @@ from typing import Any
 
 import pytest
 from django.conf import settings
-from django.db import connections
 
 from .manager import ContainerManager
+from .utils import apply_settings_updates, recreate_database_connections, restore_settings
 
 _container_manager: ContainerManager | None = None
 _original_settings: dict[str, Any] = {}
+_context: dict[str, Any] = {}
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Capture original Django settings before test setup overwrites them.
+
+    Django's setup_test_environment() overwrites certain settings
+    (e.g. EMAIL_BACKEND is set to locmem). We capture originals here
+    so providers can use them for auto-detection.
+    """
+    global _context
+    try:
+        _context = {
+            "original_email_backend": getattr(settings, "EMAIL_BACKEND", None),
+        }
+    except Exception:
+        # Settings may not be configured yet
+        _context = {}
 
 
 @pytest.fixture(scope="session")
@@ -33,26 +51,12 @@ def django_db_setup(
     global _container_manager, _original_settings
 
     # Start containers and get settings updates
-    _container_manager = ContainerManager(settings)
+    _container_manager = ContainerManager(settings, context=_context)
     settings_updates = _container_manager.start_containers()
 
     if settings_updates:
-        # Apply settings updates
-        _apply_settings_updates(settings_updates)
-
-        # Clear Django's cached connection settings
-        if "settings" in connections.__dict__:
-            del connections.__dict__["settings"]
-
-        # Reconfigure connections with updated settings
-        connections._settings = connections.configure_settings(settings.DATABASES)  # type: ignore[attr-defined]
-
-        # Close all existing connections
-        connections.close_all()
-
-        # Explicitly recreate connections with new settings
-        for alias in settings.DATABASES:
-            connections[alias] = connections.create_connection(alias)
+        apply_settings_updates(settings_updates, _original_settings)
+        recreate_database_connections()
 
     # Now run pytest-django's database setup logic
     from django.test.utils import setup_databases, teardown_databases
@@ -79,7 +83,7 @@ def django_db_setup(
             pass
 
     if _container_manager is not None:
-        _restore_settings()
+        restore_settings(_original_settings)
         print("Stopping test containers...")
         _container_manager.stop_containers()
         _container_manager = None
@@ -93,38 +97,6 @@ def testcontainers_manager() -> ContainerManager | None:
         ContainerManager instance with active containers
     """
     return _container_manager
-
-
-def _apply_settings_updates(updates: dict[str, Any]) -> None:
-    """Apply settings updates and save originals for restoration.
-
-    Args:
-        updates: Dict of settings to update
-    """
-    global _original_settings
-
-    for key, value in updates.items():
-        if key not in _original_settings:
-            _original_settings[key] = getattr(settings, key, None)
-
-        if isinstance(value, dict) and hasattr(settings, key):
-            original = getattr(settings, key, {})
-            if isinstance(original, dict):
-                merged = {**original, **value}
-                setattr(settings, key, merged)
-            else:
-                setattr(settings, key, value)
-        else:
-            setattr(settings, key, value)
-
-
-def _restore_settings() -> None:
-    """Restore original settings values."""
-    global _original_settings
-
-    for key, value in _original_settings.items():
-        setattr(settings, key, value)
-    _original_settings.clear()
 
 
 pytest_plugins = ["django_testcontainers_plus.pytest_plugin"]

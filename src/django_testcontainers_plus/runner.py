@@ -4,6 +4,7 @@ from django.conf import settings
 from django.test.runner import DiscoverRunner
 
 from .manager import ContainerManager
+from .utils import apply_settings_updates, recreate_database_connections, restore_settings
 
 
 class TestcontainersRunner(DiscoverRunner):
@@ -35,13 +36,21 @@ class TestcontainersRunner(DiscoverRunner):
 
     def setup_test_environment(self, **kwargs: Any) -> None:
         """Set up test environment and start containers."""
+        # Capture original settings before Django's setup_test_environment
+        # overwrites them (e.g. EMAIL_BACKEND is set to locmem)
+        context = {
+            "original_email_backend": getattr(settings, "EMAIL_BACKEND", None),
+        }
+
         super().setup_test_environment(**kwargs)
 
-        self.container_manager = ContainerManager(settings)
+        self.container_manager = ContainerManager(settings, context=context)
 
         settings_updates = self.container_manager.start_containers()
 
-        self._apply_settings_updates(settings_updates)
+        if settings_updates:
+            apply_settings_updates(settings_updates, self.original_settings)
+            recreate_database_connections()
 
         if self.verbosity >= 1:
             for provider_name in self.container_manager.active_containers.keys():
@@ -49,7 +58,7 @@ class TestcontainersRunner(DiscoverRunner):
 
     def teardown_test_environment(self, **kwargs: Any) -> None:
         """Tear down test environment and stop containers."""
-        self._restore_settings()
+        restore_settings(self.original_settings)
 
         if self.container_manager:
             if self.verbosity >= 1:
@@ -57,29 +66,3 @@ class TestcontainersRunner(DiscoverRunner):
             self.container_manager.stop_containers()
 
         super().teardown_test_environment(**kwargs)
-
-    def _apply_settings_updates(self, updates: dict[str, Any]) -> None:
-        """Apply settings updates and save originals for restoration.
-
-        Args:
-            updates: Dict of settings to update
-        """
-        for key, value in updates.items():
-            if key not in self.original_settings:
-                self.original_settings[key] = getattr(settings, key, None)
-
-            if isinstance(value, dict) and hasattr(settings, key):
-                original = getattr(settings, key, {})
-                if isinstance(original, dict):
-                    merged = {**original, **value}
-                    setattr(settings, key, merged)
-                else:
-                    setattr(settings, key, value)
-            else:
-                setattr(settings, key, value)
-
-    def _restore_settings(self) -> None:
-        """Restore original settings values."""
-        for key, value in self.original_settings.items():
-            setattr(settings, key, value)
-        self.original_settings.clear()

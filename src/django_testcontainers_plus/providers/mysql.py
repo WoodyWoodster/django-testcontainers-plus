@@ -13,7 +13,7 @@ class MySQLProvider(ContainerProvider):
     def name(self) -> str:
         return "mysql"
 
-    def can_auto_detect(self, settings: Any) -> bool:
+    def can_auto_detect(self, settings: Any, context: dict[str, Any] | None = None) -> bool:
         """Detect MySQL/MariaDB database from DATABASES setting."""
         databases = getattr(settings, "DATABASES", {})
         return any(

@@ -9,13 +9,17 @@ from .providers import PROVIDER_REGISTRY, UNAVAILABLE_PROVIDERS, ContainerProvid
 class ContainerManager:
     """Manages lifecycle of test containers."""
 
-    def __init__(self, settings: Any):
+    def __init__(self, settings: Any, context: dict[str, Any] | None = None):
         """Initialize container manager.
 
         Args:
             settings: Django settings module
+            context: Optional dict with pre-test-setup values that Django's test
+                framework may have overwritten. Passed to providers during
+                auto-detection.
         """
         self.settings = settings
+        self.context = context
         self.providers: list[ContainerProvider] = PROVIDER_REGISTRY
         self.active_containers: dict[str, DockerContainer] = {}
         self.settings_updates: dict[str, Any] = {}
@@ -51,7 +55,7 @@ class ContainerManager:
             if provider_config.get("auto", True) is False:
                 continue
 
-            if provider.can_auto_detect(self.settings):
+            if provider.can_auto_detect(self.settings, self.context):
                 needed_providers.append(provider)
 
         for provider_name in config.keys():

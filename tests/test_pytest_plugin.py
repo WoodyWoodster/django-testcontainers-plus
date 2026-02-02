@@ -1,10 +1,11 @@
-"""Tests for pytest plugin."""
+"""Tests for pytest plugin and utils."""
 
 from unittest.mock import Mock
 
 from django.conf import settings as django_settings
 
 from django_testcontainers_plus import pytest_plugin
+from django_testcontainers_plus.utils import apply_settings_updates, restore_settings
 
 
 class TestPytestPlugin:
@@ -13,18 +14,17 @@ class TestPytestPlugin:
     def test_apply_settings_updates_simple(self):
         """Test applying simple settings updates."""
         updates = {"TEST_SETTING": "test_value"}
+        original_settings: dict = {}
 
-        pytest_plugin._apply_settings_updates(updates)
+        apply_settings_updates(updates, original_settings)
 
         assert hasattr(django_settings, "TEST_SETTING")
         assert django_settings.TEST_SETTING == "test_value"
-        assert "TEST_SETTING" in pytest_plugin._original_settings
+        assert "TEST_SETTING" in original_settings
 
     def test_apply_settings_updates_dict_merge(self):
         """Test applying dict settings with merge."""
-        original_databases = getattr(django_settings, "DATABASES", {})
-        if not isinstance(original_databases, dict):
-            original_databases = {}
+        original_settings: dict = {}
 
         updates = {
             "DATABASES": {
@@ -35,7 +35,7 @@ class TestPytestPlugin:
             }
         }
 
-        pytest_plugin._apply_settings_updates(updates)
+        apply_settings_updates(updates, original_settings)
 
         assert hasattr(django_settings, "DATABASES")
         assert "test_db" in django_settings.DATABASES
@@ -48,10 +48,10 @@ class TestPytestPlugin:
         django_settings.TEST_ORIGINAL = "original"
         updates = {"TEST_ORIGINAL": "updated"}
 
-        pytest_plugin._original_settings.clear()
-        pytest_plugin._apply_settings_updates(updates)
+        original_settings: dict = {}
+        apply_settings_updates(updates, original_settings)
 
-        assert pytest_plugin._original_settings["TEST_ORIGINAL"] == "original"
+        assert original_settings["TEST_ORIGINAL"] == "original"
         assert django_settings.TEST_ORIGINAL == "updated"
 
         if original_value is not None:
@@ -61,7 +61,7 @@ class TestPytestPlugin:
 
     def test_restore_settings(self):
         """Test restoring original settings."""
-        pytest_plugin._original_settings = {
+        original_settings = {
             "TEST_RESTORE": "original_value",
             "TEST_NEW": None,
         }
@@ -69,18 +69,18 @@ class TestPytestPlugin:
         django_settings.TEST_RESTORE = "updated_value"
         django_settings.TEST_NEW = "new_value"
 
-        pytest_plugin._restore_settings()
+        restore_settings(original_settings)
 
         assert django_settings.TEST_RESTORE == "original_value"
-        assert pytest_plugin._original_settings == {}
+        assert original_settings == {}
 
     def test_restore_settings_empty(self):
         """Test restoring when no original settings exist."""
-        pytest_plugin._original_settings.clear()
+        original_settings: dict = {}
 
-        pytest_plugin._restore_settings()
+        restore_settings(original_settings)
 
-        assert pytest_plugin._original_settings == {}
+        assert original_settings == {}
 
     def test_container_manager_module_state(self):
         """Test that module-level container manager state works."""
@@ -104,11 +104,11 @@ class TestPytestPlugin:
         django_settings.NON_DICT_SETTING = "string_value"
         updates = {"NON_DICT_SETTING": {"key": "value"}}
 
-        pytest_plugin._original_settings.clear()
-        pytest_plugin._apply_settings_updates(updates)
+        original_settings: dict = {}
+        apply_settings_updates(updates, original_settings)
 
         assert django_settings.NON_DICT_SETTING == {"key": "value"}
-        assert pytest_plugin._original_settings["NON_DICT_SETTING"] == "string_value"
+        assert original_settings["NON_DICT_SETTING"] == "string_value"
 
     def test_apply_settings_updates_multiple(self):
         """Test applying multiple settings updates."""
@@ -118,10 +118,10 @@ class TestPytestPlugin:
             "SETTING_THREE": {"nested": "value"},
         }
 
-        pytest_plugin._original_settings.clear()
-        pytest_plugin._apply_settings_updates(updates)
+        original_settings: dict = {}
+        apply_settings_updates(updates, original_settings)
 
         assert django_settings.SETTING_ONE == "value_one"
         assert django_settings.SETTING_TWO == "value_two"
         assert django_settings.SETTING_THREE == {"nested": "value"}
-        assert len(pytest_plugin._original_settings) == 3
+        assert len(original_settings) == 3

@@ -1,8 +1,10 @@
 from .base import ContainerProvider
+from .mailhog import MailhogProvider
 from .postgres import PostgresProvider
 
 __all__ = [
     "ContainerProvider",
+    "MailhogProvider",
     "PostgresProvider",
     "PROVIDER_REGISTRY",
     "UNAVAILABLE_PROVIDERS",
@@ -10,6 +12,7 @@ __all__ = [
 
 PROVIDER_REGISTRY: list[ContainerProvider] = [
     PostgresProvider(),
+    MailhogProvider(),
 ]
 
 UNAVAILABLE_PROVIDERS: dict[str, tuple[str, Exception]] = {}

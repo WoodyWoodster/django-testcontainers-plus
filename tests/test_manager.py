@@ -25,7 +25,7 @@ class MockProvider(ContainerProvider):
     def name(self) -> str:
         return self._name
 
-    def can_auto_detect(self, settings) -> bool:
+    def can_auto_detect(self, settings, context=None) -> bool:
         return self._auto_detect
 
     def get_container(self, config):

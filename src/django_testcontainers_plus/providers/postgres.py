@@ -13,7 +13,7 @@ class PostgresProvider(ContainerProvider):
     def name(self) -> str:
         return "postgres"
 
-    def can_auto_detect(self, settings: Any) -> bool:
+    def can_auto_detect(self, settings: Any, context: dict[str, Any] | None = None) -> bool:
         """Detect PostgreSQL database from DATABASES setting."""
         databases = getattr(settings, "DATABASES", {})
         return any(

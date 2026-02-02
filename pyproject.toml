@@ -8,7 +8,7 @@ authors = [
     { name = "Andrew Woodward", email = "arwoodward553@gmail.com" }
 ]
 requires-python = ">=3.10"
-keywords = ["django", "testcontainers", "testing", "docker", "containers", "postgres", "mysql", "redis"]
+keywords = ["django", "testcontainers", "testing", "docker", "containers", "postgres", "mysql", "redis", "mailhog", "email"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Framework :: Django",

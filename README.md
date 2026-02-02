@@ -102,8 +102,8 @@ pytest
 ### Other Services
 
 - Redis - Auto-detected from cache/Celery settings
+- Mailhog - Auto-detected from SMTP email backend
 - MinIO - S3-compatible storage (coming soon)
-- Mailhog - Email testing (coming soon)
 - Elasticsearch - Search (coming soon)
 
 ## Configuration
@@ -125,6 +125,10 @@ CACHES = {
 
 # Celery Redis auto-detected
 CELERY_BROKER_URL = 'redis://localhost:6379/0'
+
+# Mailhog auto-detected
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'localhost'
 ```
 
 ### Custom Configuration
@@ -141,6 +145,9 @@ TESTCONTAINERS = {
     },
     'redis': {
         'image': 'redis:7-alpine',
+    },
+    'mailhog': {
+        'image': 'mailhog/mailhog:latest',
     },
 }
 ```
@@ -224,6 +231,59 @@ CACHES = {
 ```
 
 Both PostgreSQL and Redis containers will start automatically!
+
+### Mailhog for Email Testing
+
+Mailhog is an email testing tool that captures emails sent by your application. When the Mailhog container starts, the following Django settings are automatically configured:
+
+| Setting | Description |
+|---------|-------------|
+| `EMAIL_HOST` | Container hostname |
+| `EMAIL_PORT` | SMTP port (mapped from 1025) |
+| `EMAIL_USE_TLS` | Set to `False` |
+| `EMAIL_USE_SSL` | Set to `False` |
+| `MAILHOG_API_URL` | HTTP API base URL for retrieving sent emails (e.g., `http://localhost:32769/api/v2`) |
+
+```python
+# settings.py
+TEST_RUNNER = 'django_testcontainers_plus.runner.TestcontainersRunner'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'localhost'
+EMAIL_PORT = 1025
+```
+
+```python
+# tests.py
+from django.core.mail import send_mail
+from django.conf import settings
+import requests
+
+def test_email_sending():
+    # Mailhog container is automatically started
+    send_mail(
+        'Test Subject',
+        'Test message body',
+        'from@example.com',
+        ['to@example.com'],
+        fail_silently=False,
+    )
+
+    # Retrieve sent emails via Mailhog API using MAILHOG_API_URL
+    response = requests.get(f'{settings.MAILHOG_API_URL}/messages')
+    messages = response.json()['items']
+
+    assert len(messages) == 1
+    assert messages[0]['Content']['Headers']['Subject'][0] == 'Test Subject'
+
+def test_clear_mailbox():
+    # Delete all messages before test
+    requests.delete(f'{settings.MAILHOG_API_URL}/messages')
+
+    # ... send emails and verify
+```
+
+**Note:** The `MAILHOG_API_URL` setting is dynamically injected when the container starts. Use it to interact with the Mailhog API for retrieving, searching, or deleting captured emails during tests.
 
 ## How It Works
 
@@ -337,9 +397,9 @@ uv run mypy src/
 - [x] Redis support
 - [x] Django test runner integration
 - [x] pytest plugin
+- [x] Mailhog support
 - [ ] MongoDB support
 - [ ] MinIO (S3) support
-- [ ] Mailhog support
 - [ ] Elasticsearch support
 - [ ] RabbitMQ support
 - [ ] Container reuse between test runs

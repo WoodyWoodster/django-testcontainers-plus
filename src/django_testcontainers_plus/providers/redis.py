@@ -13,7 +13,7 @@ class RedisProvider(ContainerProvider):
     def name(self) -> str:
         return "redis"
 
-    def can_auto_detect(self, settings: Any) -> bool:
+    def can_auto_detect(self, settings: Any, context: dict[str, Any] | None = None) -> bool:
         """Detect Redis from CACHES or Celery settings."""
         caches = getattr(settings, "CACHES", {})
         has_redis_cache = any(

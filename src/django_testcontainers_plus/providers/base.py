@@ -20,11 +20,13 @@ class ContainerProvider(ABC):
         ...
 
     @abstractmethod
-    def can_auto_detect(self, settings: Any) -> bool:
+    def can_auto_detect(self, settings: Any, context: dict[str, Any] | None = None) -> bool:
         """Check if this service is needed based on Django settings.
 
         Args:
             settings: Django settings module
+            context: Optional dict with pre-test-setup values that Django's test
+                framework may have overwritten.
 
         Returns:
             True if this service should be automatically started
