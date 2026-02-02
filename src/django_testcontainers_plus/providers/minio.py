@@ -43,27 +43,45 @@ class MinioProvider(ContainerProvider):
         return "minio"
 
     def can_auto_detect(self, settings: Any, context: dict[str, Any] | None = None) -> bool:
-        """Detect S3/MinIO usage from Django settings."""
-        # Check DEFAULT_FILE_STORAGE
-        default_storage = getattr(settings, "DEFAULT_FILE_STORAGE", "")
+        """Detect S3/MinIO usage from Django settings.
+
+        Context keys (override settings if present):
+            original_default_file_storage, original_staticfiles_storage,
+            original_storages, original_aws_storage_bucket_name
+        """
+        # DEFAULT_FILE_STORAGE
+        if context and context.get("original_default_file_storage") is not None:
+            default_storage = context["original_default_file_storage"]
+        else:
+            default_storage = getattr(settings, "DEFAULT_FILE_STORAGE", "")
         if self._is_s3_storage(default_storage):
             return True
 
-        # Check STATICFILES_STORAGE
-        static_storage = getattr(settings, "STATICFILES_STORAGE", "")
+        # STATICFILES_STORAGE
+        if context and context.get("original_staticfiles_storage") is not None:
+            static_storage = context["original_staticfiles_storage"]
+        else:
+            static_storage = getattr(settings, "STATICFILES_STORAGE", "")
         if self._is_s3_storage(static_storage):
             return True
 
-        # Check STORAGES dict (Django 4.2+)
-        storages = getattr(settings, "STORAGES", {})
+        # STORAGES dict (Django 4.2+)
+        if context and context.get("original_storages") is not None:
+            storages = context["original_storages"]
+        else:
+            storages = getattr(settings, "STORAGES", {})
         for storage_config in storages.values():
             if isinstance(storage_config, dict):
                 backend = storage_config.get("BACKEND", "")
                 if self._is_s3_storage(backend):
                     return True
 
-        # Check for AWS S3 configuration
-        if getattr(settings, "AWS_STORAGE_BUCKET_NAME", None):
+        # AWS_STORAGE_BUCKET_NAME
+        if context and context.get("original_aws_storage_bucket_name") is not None:
+            aws_bucket = context["original_aws_storage_bucket_name"]
+        else:
+            aws_bucket = getattr(settings, "AWS_STORAGE_BUCKET_NAME", None)
+        if aws_bucket:
             return True
 
         return False

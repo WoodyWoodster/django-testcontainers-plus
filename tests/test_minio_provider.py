@@ -133,6 +133,96 @@ class TestMinioProviderAutoDetect:
         provider = MinioProvider()
         assert provider.can_auto_detect(settings) is False
 
+    def test_can_auto_detect_uses_context_default_file_storage(self) -> None:
+        """Should use original_default_file_storage from context over settings."""
+        settings = Mock()
+        # Settings have been modified (e.g., by test framework)
+        settings.DEFAULT_FILE_STORAGE = "django.core.files.storage.FileSystemStorage"
+        settings.STATICFILES_STORAGE = ""
+        settings.STORAGES = {}
+        settings.AWS_STORAGE_BUCKET_NAME = None
+
+        # Context preserves the original S3 value
+        context = {
+            "original_default_file_storage": "storages.backends.s3boto3.S3Boto3Storage",
+        }
+
+        provider = MinioProvider()
+        assert provider.can_auto_detect(settings, context) is True
+
+    def test_can_auto_detect_uses_context_staticfiles_storage(self) -> None:
+        """Should use original_staticfiles_storage from context over settings."""
+        settings = Mock()
+        settings.DEFAULT_FILE_STORAGE = ""
+        settings.STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+        settings.STORAGES = {}
+        settings.AWS_STORAGE_BUCKET_NAME = None
+
+        context = {
+            "original_staticfiles_storage": "storages.backends.s3boto3.S3StaticStorage",
+        }
+
+        provider = MinioProvider()
+        assert provider.can_auto_detect(settings, context) is True
+
+    def test_can_auto_detect_uses_context_storages_dict(self) -> None:
+        """Should use original_storages from context over settings."""
+        settings = Mock()
+        settings.DEFAULT_FILE_STORAGE = ""
+        settings.STATICFILES_STORAGE = ""
+        settings.STORAGES = {}  # Modified by test framework
+        settings.AWS_STORAGE_BUCKET_NAME = None
+
+        context = {
+            "original_storages": {
+                "default": {
+                    "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+                }
+            },
+        }
+
+        provider = MinioProvider()
+        assert provider.can_auto_detect(settings, context) is True
+
+    def test_can_auto_detect_uses_context_aws_bucket_name(self) -> None:
+        """Should use original_aws_storage_bucket_name from context over settings."""
+        settings = Mock()
+        settings.DEFAULT_FILE_STORAGE = ""
+        settings.STATICFILES_STORAGE = ""
+        settings.STORAGES = {}
+        settings.AWS_STORAGE_BUCKET_NAME = None  # Cleared by test framework
+
+        context = {
+            "original_aws_storage_bucket_name": "my-production-bucket",
+        }
+
+        provider = MinioProvider()
+        assert provider.can_auto_detect(settings, context) is True
+
+    def test_can_auto_detect_empty_context_falls_back_to_settings(self) -> None:
+        """Should fall back to settings when context is empty."""
+        settings = Mock()
+        settings.DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+        settings.STATICFILES_STORAGE = ""
+        settings.STORAGES = {}
+        settings.AWS_STORAGE_BUCKET_NAME = None
+
+        provider = MinioProvider()
+        assert provider.can_auto_detect(settings, context={}) is True
+
+    def test_can_auto_detect_context_with_none_value_falls_back(self) -> None:
+        """Should fall back to settings when context value is None."""
+        settings = Mock()
+        settings.DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+        settings.STATICFILES_STORAGE = ""
+        settings.STORAGES = {}
+        settings.AWS_STORAGE_BUCKET_NAME = None
+
+        context = {"original_default_file_storage": None}
+
+        provider = MinioProvider()
+        assert provider.can_auto_detect(settings, context) is True
+
 
 class TestMinioProviderContainer:
     """Tests for MinIO container creation."""
