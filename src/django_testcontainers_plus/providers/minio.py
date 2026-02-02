@@ -42,7 +42,7 @@ class MinioProvider(ContainerProvider):
     def name(self) -> str:
         return "minio"
 
-    def can_auto_detect(self, settings: Any) -> bool:
+    def can_auto_detect(self, settings: Any, context: dict[str, Any] | None = None) -> bool:
         """Detect S3/MinIO usage from Django settings."""
         # Check DEFAULT_FILE_STORAGE
         default_storage = getattr(settings, "DEFAULT_FILE_STORAGE", "")
