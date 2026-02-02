@@ -2,8 +2,6 @@
 
 from unittest.mock import Mock, patch
 
-import pytest
-
 from django_testcontainers_plus.providers.minio import MinioProvider
 
 
