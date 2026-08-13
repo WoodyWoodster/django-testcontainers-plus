@@ -1,7 +1,7 @@
 from typing import Any
 
+from testcontainers.community.mysql import MySqlContainer
 from testcontainers.core.generic import DockerContainer
-from testcontainers.mysql import MySqlContainer
 
 from .base import ContainerProvider
 
