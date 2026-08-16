@@ -3,7 +3,7 @@ from .manager import ContainerManager
 from .providers import ContainerProvider, PostgresProvider
 from .runner import TestcontainersRunner
 
-__version__ = "0.1.1"
+__version__ = "0.1.5"
 
 __all__ = [
     "ContainerManager",
