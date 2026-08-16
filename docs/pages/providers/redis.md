@@ -20,6 +20,21 @@ The provider activates automatically from any of these settings:
 
 ## Minimal Setup
 
+The most common setup is Django's Redis cache backend. Set the test runner (or the pytest plugin) and a `CACHES` backend whose name contains `redis`:
+
+```python title="settings.py"
+TEST_RUNNER = 'django_testcontainers_plus.runner.TestcontainersRunner'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': 'redis://localhost:6379/0',
+    }
+}
+```
+
+Celery (`CELERY_BROKER_URL` starting with `redis://`) and Redis sessions (`SESSION_ENGINE`) are also auto-detected.
+
 === "Django Cache"
 
     ```python title="settings.py"

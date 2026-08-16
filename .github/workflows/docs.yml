@@ -28,7 +28,16 @@ jobs:
           version: "latest"
 
       - name: Install docs dependencies
-        run: uv pip install --system mkdocs-material "mkdocstrings[python]"
+        run: uv pip install --system ".[docs]"
 
       - name: Build docs
         run: mkdocs build --clean
+
+      - name: Check LLM-friendly outputs
+        run: |
+          test -f site/llms.txt
+          test -f site/llms-full.txt
+          if grep -q '::: django_testcontainers_plus' site/pages/api-reference/providers/index.md; then
+            echo "API markdown still contains mkdocstrings directives" >&2
+            exit 1
+          fi

@@ -1,20 +1,26 @@
 # Django Testcontainers Plus
 
-A plug-and-play testcontainers integration for Django
+Django **test runner** and **pytest** plugin for [Testcontainers](https://testcontainers.com/). It auto-starts Postgres, MySQL, Redis, S3, and Mailhog from your existing `DATABASES` / `CACHES` / `STORAGES` settings so tests run against real Docker services without a docker-compose test stack.
 
 [![PyPI version](https://img.shields.io/pypi/v/django-testcontainers-plus.svg)](https://pypi.org/project/django-testcontainers-plus/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+**Docs:** [django-testcontainers-plus.readthedocs.io](https://django-testcontainers-plus.readthedocs.io/) · [llms.txt](https://django-testcontainers-plus.readthedocs.io/llms.txt) · [llms-full.txt](https://django-testcontainers-plus.readthedocs.io/llms-full.txt)
+
 ## Why Django Testcontainers Plus?
 
-Testing Django applications often requires external services like PostgreSQL, Redis, or S3. Django Testcontainers Plus makes this effortless by:
+- **Zero configuration**: Detects engines from Django settings (no extra TOML required to start)
+- **Django test runner and pytest-django**: `TEST_RUNNER` or a pytest plugin, not pytest-only
+- **Beyond Postgres**: MySQL/MariaDB, Redis, S3-compatible storage, Mailhog
+- **No docker-compose for tests**: Containers start, settings are rewritten with host/port, then torn down
 
-- **Zero Configuration**: Automatically detects your database and service needs from Django settings
-- **Plug and Play**: Install, add to settings, and go - no manual container management
-- **Database Agnostic**: Supports PostgreSQL, MySQL, MariaDB, and more
-- **Beyond Databases**: Redis for caching, S3-compatible storage, and other services
-- **Dual Compatibility**: Works with both Django's test runner and pytest
-- **Smart Defaults**: Sensible defaults with full customization when needed
+## Compared to
+
+| Approach | Use when |
+|---|---|
+| **django-testcontainers-plus** | You want Django `manage.py test` *and* pytest, with auto-detect from existing settings |
+| [pytest-testcontainers-django](https://pypi.org/project/pytest-testcontainers-django/) | You are pytest-only and want to start Postgres/Redis before Django imports settings |
+| Raw [testcontainers](https://pypi.org/project/testcontainers/) | You want to wire containers and Django `DATABASES` yourself |
 
 ## Installation
 

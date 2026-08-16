@@ -8,6 +8,14 @@
 
 ## Basic Installation
 
+Install with uv or pip. PostgreSQL support is included by default.
+
+```bash
+uv add django-testcontainers-plus
+# or
+pip install django-testcontainers-plus
+```
+
 === "uv (recommended)"
 
     ```bash
@@ -20,11 +28,9 @@
     pip install django-testcontainers-plus
     ```
 
-PostgreSQL support is included by default - no extras needed.
-
 ## Optional Extras
 
-Some providers require additional client libraries. Install them with the appropriate extra:
+Some providers require additional client libraries. Install them with the appropriate extra, for example `pip install django-testcontainers-plus[mysql]`, `[redis]`, `[s3]`, or `[all]`.
 
 === "MySQL / MariaDB"
 

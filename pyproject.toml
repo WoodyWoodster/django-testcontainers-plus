@@ -1,14 +1,14 @@
 [project]
 name = "django-testcontainers-plus"
 version = "0.1.6"
-description = "A plug-and-play testcontainers integration for Django - supports databases, Redis, S3, and more"
+description = "Django test runner and pytest plugin for Testcontainers. Auto-starts Postgres, MySQL, Redis, and S3 from Django settings—no docker-compose for tests."
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
     { name = "Andrew Woodward", email = "arwoodward553@gmail.com" }
 ]
 requires-python = ">=3.10"
-keywords = ["django", "testcontainers", "testing", "docker", "containers", "postgres", "mysql", "redis", "mailhog", "email", "s3", "boto3", "django-storages"]
+keywords = ["django", "testcontainers", "testing", "docker", "containers", "postgres", "mysql", "redis", "mailhog", "email", "s3", "boto3", "django-storages", "pytest-django", "django-test-runner", "integration-testing"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Framework :: Django",
@@ -47,6 +47,7 @@ dev = [
 docs = [
     "mkdocs-material>=9.0.0",
     "mkdocstrings[python]>=0.25.0",
+    "mkdocs-llmstxt>=0.3.0",
 ]
 mysql = [
     "mysql-connector-python>=8.0.0",
@@ -67,6 +68,7 @@ all = [
 Homepage = "https://github.com/woodywoodster/django-testcontainers-plus"
 Repository = "https://github.com/woodywoodster/django-testcontainers-plus"
 Documentation = "https://django-testcontainers-plus.readthedocs.io/"
+"Documentation (LLM)" = "https://django-testcontainers-plus.readthedocs.io/llms.txt"
 Issues = "https://github.com/woodywoodster/django-testcontainers-plus/issues"
 
 [build-system]
