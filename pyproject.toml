@@ -1,6 +1,6 @@
 [project]
 name = "django-testcontainers-plus"
-version = "0.1.6"
+version = "0.1.7"
 description = "Django test runner and pytest plugin for Testcontainers. Auto-starts Postgres, MySQL, Redis, and S3 from Django settings—no docker-compose for tests."
 readme = "README.md"
 license = { text = "MIT" }
