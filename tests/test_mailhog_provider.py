@@ -294,8 +294,10 @@ class TestMailhogProvider:
         assert updates["EMAIL_PORT"] == 1025
 
     def test_update_settings_with_mailers(self):
-        """Test that MAILERS is patched instead of deprecated EMAIL_* keys."""
+        """Test that MAILERS and EMAIL_* both point at Mailhog."""
         settings = MockSettings(
+            EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+            EMAIL_HOST="smtp.example.com",
             MAILERS={
                 "default": {
                     "BACKEND": "django.core.mail.backends.locmem.EmailBackend",
@@ -314,8 +316,11 @@ class TestMailhogProvider:
 
         updates = provider.update_settings(mock_container, settings, {})
 
-        assert "EMAIL_BACKEND" not in updates
-        assert "EMAIL_HOST" not in updates
+        assert updates["EMAIL_BACKEND"] == "django.core.mail.backends.smtp.EmailBackend"
+        assert updates["EMAIL_HOST"] == "127.0.0.1"
+        assert updates["EMAIL_PORT"] == 32768
+        assert updates["EMAIL_USE_TLS"] is False
+        assert updates["EMAIL_USE_SSL"] is False
         assert updates["MAILERS"]["default"]["BACKEND"] == (
             "django.core.mail.backends.smtp.EmailBackend"
         )

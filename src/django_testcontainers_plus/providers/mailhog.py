@@ -116,9 +116,9 @@ class MailhogProvider(ContainerProvider):
     ) -> dict[str, Any]:
         """Update email settings with container connection info.
 
-        When MAILERS is defined (Django 6.1+), patch the default mailer OPTIONS
-        instead of the deprecated EMAIL_* settings. Otherwise keep the EMAIL_*
-        path for Django 5.2 / 6.0.
+        Always point EMAIL_* at Mailhog so leftover deprecated settings cannot
+        send real email. When MAILERS is defined (Django 6.1+), also patch the
+        default mailer OPTIONS.
         """
         host = container.get_container_host_ip()
         smtp_port = int(container.get_exposed_port(SMTP_PORT))
@@ -126,6 +126,12 @@ class MailhogProvider(ContainerProvider):
 
         updates: dict[str, Any] = {
             "MAILHOG_API_URL": f"http://{host}:{http_port}/api/v2",
+            # Restore SMTP backend (Django's test setup may have set it to locmem)
+            "EMAIL_BACKEND": SMTP_BACKEND,
+            "EMAIL_HOST": host,
+            "EMAIL_PORT": smtp_port,
+            "EMAIL_USE_TLS": False,
+            "EMAIL_USE_SSL": False,
         }
 
         mailers = getattr(settings, "MAILERS", None)
@@ -147,18 +153,7 @@ class MailhogProvider(ContainerProvider):
                     "OPTIONS": options,
                 }
             }
-            return updates
 
-        updates.update(
-            {
-                # Restore SMTP backend (Django's test setup may have set it to locmem)
-                "EMAIL_BACKEND": SMTP_BACKEND,
-                "EMAIL_HOST": host,
-                "EMAIL_PORT": smtp_port,
-                "EMAIL_USE_TLS": False,
-                "EMAIL_USE_SSL": False,
-            }
-        )
         return updates
 
     def get_default_config(self) -> dict[str, Any]:
