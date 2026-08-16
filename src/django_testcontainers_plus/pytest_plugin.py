@@ -16,13 +16,14 @@ def pytest_configure(config: pytest.Config) -> None:
     """Capture original Django settings before test setup overwrites them.
 
     Django's setup_test_environment() overwrites certain settings
-    (e.g. EMAIL_BACKEND is set to locmem). We capture originals here
-    so providers can use them for auto-detection.
+    (EMAIL_BACKEND and MAILERS are set to locmem). We capture originals
+    here so providers can use them for auto-detection.
     """
     global _context
     try:
         _context = {
             "original_email_backend": getattr(settings, "EMAIL_BACKEND", None),
+            "original_mailers": getattr(settings, "MAILERS", None),
         }
     except Exception:
         # Settings may not be configured yet

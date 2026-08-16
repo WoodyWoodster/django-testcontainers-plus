@@ -111,6 +111,94 @@ class TestMailhogProvider:
 
         assert provider.can_auto_detect(settings, context={}) is True
 
+    def test_can_auto_detect_mailers_smtp_backend(self):
+        """Test auto-detection from Django 6.1 MAILERS smtp backend."""
+        settings = MockSettings(
+            MAILERS={
+                "default": {
+                    "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+                    "OPTIONS": {"host": "smtp.example.com"},
+                }
+            }
+        )
+        provider = MailhogProvider()
+
+        assert provider.can_auto_detect(settings) is True
+
+    def test_can_auto_detect_mailers_host_no_backend(self):
+        """Test auto-detection when MAILERS OPTIONS host is set without BACKEND."""
+        settings = MockSettings(
+            MAILERS={
+                "default": {
+                    "OPTIONS": {"host": "smtp.example.com"},
+                }
+            }
+        )
+        provider = MailhogProvider()
+
+        assert provider.can_auto_detect(settings) is True
+
+    def test_can_auto_detect_mailers_locmem_backend(self):
+        """Test that MAILERS locmem backend is skipped."""
+        settings = MockSettings(
+            MAILERS={
+                "default": {
+                    "BACKEND": "django.core.mail.backends.locmem.EmailBackend",
+                }
+            }
+        )
+        provider = MailhogProvider()
+
+        assert provider.can_auto_detect(settings) is False
+
+    def test_can_auto_detect_mailers_console_backend(self):
+        """Test that MAILERS console backend is skipped."""
+        settings = MockSettings(
+            MAILERS={
+                "default": {
+                    "BACKEND": "django.core.mail.backends.console.EmailBackend",
+                }
+            }
+        )
+        provider = MailhogProvider()
+
+        assert provider.can_auto_detect(settings) is False
+
+    def test_can_auto_detect_uses_context_mailers_over_settings(self):
+        """Test that context original_mailers is used over overwritten settings."""
+        settings = MockSettings(
+            MAILERS={
+                "default": {
+                    "BACKEND": "django.core.mail.backends.locmem.EmailBackend",
+                }
+            }
+        )
+        context = {
+            "original_mailers": {
+                "default": {
+                    "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+                    "OPTIONS": {"host": "smtp.example.com"},
+                }
+            }
+        }
+        provider = MailhogProvider()
+
+        assert provider.can_auto_detect(settings, context) is True
+
+    def test_can_auto_detect_mailers_takes_precedence_over_email_backend(self):
+        """Test that MAILERS backend is preferred over EMAIL_BACKEND."""
+        settings = MockSettings(
+            EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+            MAILERS={
+                "default": {
+                    "BACKEND": "django.core.mail.backends.console.EmailBackend",
+                }
+            },
+        )
+        provider = MailhogProvider()
+
+        assert provider.can_auto_detect(settings) is False
+
     @patch("django_testcontainers_plus.providers.mailhog.DockerContainer")
     def test_get_container_defaults(self, mock_docker_container):
         """Test container creation with default config."""
@@ -204,6 +292,65 @@ class TestMailhogProvider:
 
         assert isinstance(updates["EMAIL_PORT"], int)
         assert updates["EMAIL_PORT"] == 1025
+
+    def test_update_settings_with_mailers(self):
+        """Test that MAILERS and EMAIL_* both point at Mailhog."""
+        settings = MockSettings(
+            EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend",
+            EMAIL_HOST="smtp.example.com",
+            MAILERS={
+                "default": {
+                    "BACKEND": "django.core.mail.backends.locmem.EmailBackend",
+                },
+                "marketing": {
+                    "BACKEND": "example.third.party.EmailBackend",
+                },
+            },
+        )
+
+        provider = MailhogProvider()
+        mock_container = Mock()
+        mock_container.get_container_host_ip = Mock(return_value="127.0.0.1")
+        port_map = {1025: 32768, 8025: 32769}
+        mock_container.get_exposed_port = Mock(side_effect=lambda p: port_map[p])
+
+        updates = provider.update_settings(mock_container, settings, {})
+
+        assert updates["EMAIL_BACKEND"] == "django.core.mail.backends.smtp.EmailBackend"
+        assert updates["EMAIL_HOST"] == "127.0.0.1"
+        assert updates["EMAIL_PORT"] == 32768
+        assert updates["EMAIL_USE_TLS"] is False
+        assert updates["EMAIL_USE_SSL"] is False
+        assert updates["MAILERS"]["default"]["BACKEND"] == (
+            "django.core.mail.backends.smtp.EmailBackend"
+        )
+        assert updates["MAILERS"]["default"]["OPTIONS"]["host"] == "127.0.0.1"
+        assert updates["MAILERS"]["default"]["OPTIONS"]["port"] == 32768
+        assert updates["MAILERS"]["default"]["OPTIONS"]["use_tls"] is False
+        assert updates["MAILERS"]["default"]["OPTIONS"]["use_ssl"] is False
+        assert updates["MAILHOG_API_URL"] == "http://127.0.0.1:32769/api/v2"
+        assert "marketing" not in updates["MAILERS"]
+
+    def test_update_settings_mailers_port_type(self):
+        """Test that MAILERS OPTIONS port is an integer."""
+        settings = MockSettings(
+            MAILERS={
+                "default": {
+                    "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+                }
+            }
+        )
+
+        provider = MailhogProvider()
+        mock_container = Mock()
+        mock_container.get_container_host_ip = Mock(return_value="localhost")
+        port_map = {1025: "1025", 8025: "8025"}
+        mock_container.get_exposed_port = Mock(side_effect=lambda p: port_map[p])
+
+        updates = provider.update_settings(mock_container, settings, {})
+
+        assert isinstance(updates["MAILERS"]["default"]["OPTIONS"]["port"], int)
+        assert updates["MAILERS"]["default"]["OPTIONS"]["port"] == 1025
 
     def test_get_default_config(self):
         """Test default configuration."""

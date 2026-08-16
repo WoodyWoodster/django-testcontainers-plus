@@ -10,6 +10,8 @@ from .base import ContainerProvider
 SMTP_PORT = 1025
 HTTP_PORT = 8025
 
+SMTP_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
 # Django email backends that don't need Mailhog
 SKIP_BACKENDS = (
     "django.core.mail.backends.console.EmailBackend",
@@ -17,6 +19,32 @@ SKIP_BACKENDS = (
     "django.core.mail.backends.locmem.EmailBackend",
     "django.core.mail.backends.dummy.EmailBackend",
 )
+
+
+def _mailers_default(mailers: Any) -> dict[str, Any] | None:
+    """Return the default mailer config if MAILERS is a dict with a default entry."""
+    if not isinstance(mailers, dict):
+        return None
+    default = mailers.get("default")
+    return default if isinstance(default, dict) else None
+
+
+def _mailers_backend(mailers: Any) -> str | None:
+    """Return BACKEND from MAILERS['default'], if set."""
+    default = _mailers_default(mailers)
+    if default is None:
+        return None
+    backend = default.get("BACKEND")
+    return backend if isinstance(backend, str) else None
+
+
+def _mailers_has_host(mailers: Any) -> bool:
+    """Return True if MAILERS['default']['OPTIONS']['host'] is set."""
+    default = _mailers_default(mailers)
+    if default is None:
+        return False
+    options = default.get("OPTIONS") or {}
+    return isinstance(options, dict) and bool(options.get("host"))
 
 
 class MailhogProvider(ContainerProvider):
@@ -29,13 +57,15 @@ class MailhogProvider(ContainerProvider):
     def can_auto_detect(self, settings: Any, context: dict[str, Any] | None = None) -> bool:
         """Detect if SMTP email backend is configured.
 
-        Uses original_email_backend from context when available, since Django's
-        test setup overwrites EMAIL_BACKEND with locmem before detection runs.
-        See: https://docs.djangoproject.com/en/5.2/topics/testing/tools/#email-services
+        Uses original values from context when available, since Django's test
+        setup overwrites EMAIL_BACKEND (and MAILERS, when defined) with locmem
+        before detection runs.
+        See: https://docs.djangoproject.com/en/6.1/topics/testing/tools/#email-services
 
         Mailhog should be used when:
+        - MAILERS['default']['BACKEND'] is smtp.EmailBackend (Django 6.1+)
         - EMAIL_BACKEND is smtp.EmailBackend (explicit)
-        - EMAIL_BACKEND is not set (defaults to SMTP in Django)
+        - No backend is set, but EMAIL_HOST or MAILERS OPTIONS host is configured
 
         Mailhog should NOT be used when:
         - Console backend (prints to console)
@@ -43,24 +73,31 @@ class MailhogProvider(ContainerProvider):
         - In-memory backend (for testing without SMTP)
         - Dummy backend (discards emails)
         """
-        if context and context.get("original_email_backend") is not None:
-            email_backend = context["original_email_backend"]
-        else:
+        mailers = None
+        email_backend = None
+
+        if context:
+            if context.get("original_mailers") is not None:
+                mailers = context["original_mailers"]
+            if context.get("original_email_backend") is not None:
+                email_backend = context["original_email_backend"]
+
+        if mailers is None:
+            mailers = getattr(settings, "MAILERS", None)
+        if email_backend is None:
             email_backend = getattr(settings, "EMAIL_BACKEND", None)
 
-        # If no backend is set, Django defaults to SMTP, but we shouldn't auto-enable
-        # Mailhog unless there's an explicit SMTP backend or EMAIL_HOST is configured
-        if email_backend is None:
-            # Check if there's explicit email configuration suggesting SMTP usage
-            email_host = getattr(settings, "EMAIL_HOST", "")
-            return bool(email_host)
+        backend = _mailers_backend(mailers)
+        if backend is None:
+            backend = email_backend
 
-        # Skip non-SMTP backends
-        if email_backend in SKIP_BACKENDS:
+        if backend is None:
+            return _mailers_has_host(mailers) or bool(getattr(settings, "EMAIL_HOST", ""))
+
+        if backend in SKIP_BACKENDS:
             return False
 
-        # Detect SMTP backend
-        return bool(email_backend == "django.core.mail.backends.smtp.EmailBackend")
+        return backend == SMTP_BACKEND
 
     def get_container(self, config: dict[str, Any]) -> DockerContainer:
         """Create Mailhog container with configuration."""
@@ -77,21 +114,45 @@ class MailhogProvider(ContainerProvider):
     def update_settings(
         self, container: DockerContainer, settings: Any, config: dict[str, Any]
     ) -> dict[str, Any]:
-        """Update email settings with container connection info."""
+        """Update email settings with container connection info.
+
+        Always point EMAIL_* at Mailhog so leftover deprecated settings cannot
+        send real email. When MAILERS is defined (Django 6.1+), also patch the
+        default mailer OPTIONS.
+        """
         host = container.get_container_host_ip()
-        smtp_port = container.get_exposed_port(SMTP_PORT)
+        smtp_port = int(container.get_exposed_port(SMTP_PORT))
         http_port = container.get_exposed_port(HTTP_PORT)
 
         updates: dict[str, Any] = {
+            "MAILHOG_API_URL": f"http://{host}:{http_port}/api/v2",
             # Restore SMTP backend (Django's test setup may have set it to locmem)
-            "EMAIL_BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+            "EMAIL_BACKEND": SMTP_BACKEND,
             "EMAIL_HOST": host,
-            "EMAIL_PORT": int(smtp_port),
+            "EMAIL_PORT": smtp_port,
             "EMAIL_USE_TLS": False,
             "EMAIL_USE_SSL": False,
-            # Store the API URL for retrieving sent emails in tests
-            "MAILHOG_API_URL": f"http://{host}:{http_port}/api/v2",
         }
+
+        mailers = getattr(settings, "MAILERS", None)
+        if isinstance(mailers, dict) and mailers:
+            default = dict(_mailers_default(mailers) or {})
+            options = dict(default.get("OPTIONS") or {})
+            options.update(
+                {
+                    "host": host,
+                    "port": smtp_port,
+                    "use_tls": False,
+                    "use_ssl": False,
+                }
+            )
+            updates["MAILERS"] = {
+                "default": {
+                    **default,
+                    "BACKEND": SMTP_BACKEND,
+                    "OPTIONS": options,
+                }
+            }
 
         return updates
 

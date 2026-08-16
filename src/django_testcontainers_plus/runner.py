@@ -37,9 +37,10 @@ class TestcontainersRunner(DiscoverRunner):
     def setup_test_environment(self, **kwargs: Any) -> None:
         """Set up test environment and start containers."""
         # Capture original settings before Django's setup_test_environment
-        # overwrites them (e.g. EMAIL_BACKEND is set to locmem)
+        # overwrites them (EMAIL_BACKEND and MAILERS are set to locmem)
         context = {
             "original_email_backend": getattr(settings, "EMAIL_BACKEND", None),
+            "original_mailers": getattr(settings, "MAILERS", None),
         }
 
         super().setup_test_environment(**kwargs)
