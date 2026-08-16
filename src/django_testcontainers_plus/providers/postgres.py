@@ -1,7 +1,7 @@
 from typing import Any
 
+from testcontainers.community.postgres import PostgresContainer
 from testcontainers.core.generic import DockerContainer
-from testcontainers.postgres import PostgresContainer
 
 from .base import ContainerProvider
 

@@ -1,7 +1,7 @@
 from typing import Any, cast
 
+from testcontainers.community.redis import RedisContainer
 from testcontainers.core.generic import DockerContainer
-from testcontainers.redis import RedisContainer
 
 from .base import ContainerProvider
 
