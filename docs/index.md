@@ -54,6 +54,33 @@ Testing Django applications often requires real external services like PostgreSQ
 
 ## Quick Look
 
+Set the Django test runner, configure `DATABASES` as usual (no host or port), and run tests:
+
+```python title="settings.py"
+TEST_RUNNER = 'django_testcontainers_plus.runner.TestcontainersRunner'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'myapp',
+    }
+}
+```
+
+```bash
+python manage.py test
+```
+
+For pytest, register the plugin in `conftest.py` instead of setting `TEST_RUNNER`:
+
+```python title="conftest.py"
+pytest_plugins = ['django_testcontainers_plus.pytest_plugin']
+```
+
+```bash
+pytest
+```
+
 === "Django Test Runner"
 
     ```python title="settings.py"
@@ -105,3 +132,4 @@ Testing Django applications often requires real external services like PostgreSQ
 
 - [Quick Start](pages/getting-started/quickstart.md) - Get up and running in minutes
 - [Configuration](pages/user-guide/configuration.md) - Customize container images, credentials, and more
+- LLM-friendly copies: [llms.txt](https://django-testcontainers-plus.readthedocs.io/llms.txt) (index) and [llms-full.txt](https://django-testcontainers-plus.readthedocs.io/llms-full.txt) (full docs)

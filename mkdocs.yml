@@ -54,6 +54,32 @@ plugins:
             show_symbol_type_heading: true
             show_symbol_type_toc: true
             members_order: source
+  - llmstxt:
+      markdown_description: >
+        Plug-and-play Testcontainers for Django. Prefer Quick Start then
+        Configuration. Providers auto-detect from DATABASES / CACHES / STORAGES.
+      full_output: llms-full.txt
+      base_url: !ENV [READTHEDOCS_CANONICAL_URL, "https://django-testcontainers-plus.readthedocs.io/en/latest/"]
+      sections:
+        Getting Started:
+          - index.md: Project overview and install
+          - pages/getting-started/installation.md
+          - pages/getting-started/quickstart.md
+        User Guide:
+          - pages/user-guide/configuration.md
+          - pages/user-guide/how-it-works.md
+        Providers:
+          - pages/providers/postgres.md
+          - pages/providers/mysql.md
+          - pages/providers/redis.md
+          - pages/providers/s3.md
+        API Reference:
+          - pages/api-reference/index.md
+          - pages/api-reference/providers.md
+        Optional:
+          - pages/help/troubleshooting.md
+          - pages/help/contributing.md
+          - pages/help/changelog.md
 
 markdown_extensions:
   - admonition

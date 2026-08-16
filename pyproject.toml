@@ -47,6 +47,7 @@ dev = [
 docs = [
     "mkdocs-material>=9.0.0",
     "mkdocstrings[python]>=0.25.0",
+    "mkdocs-llmstxt>=0.3.0",
 ]
 mysql = [
     "mysql-connector-python>=8.0.0",
@@ -67,6 +68,7 @@ all = [
 Homepage = "https://github.com/woodywoodster/django-testcontainers-plus"
 Repository = "https://github.com/woodywoodster/django-testcontainers-plus"
 Documentation = "https://django-testcontainers-plus.readthedocs.io/"
+"Documentation (LLM)" = "https://django-testcontainers-plus.readthedocs.io/llms.txt"
 Issues = "https://github.com/woodywoodster/django-testcontainers-plus/issues"
 
 [build-system]

@@ -5,6 +5,8 @@ A plug-and-play testcontainers integration for Django
 [![PyPI version](https://img.shields.io/pypi/v/django-testcontainers-plus.svg)](https://pypi.org/project/django-testcontainers-plus/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+**Docs:** [django-testcontainers-plus.readthedocs.io](https://django-testcontainers-plus.readthedocs.io/) · [llms.txt](https://django-testcontainers-plus.readthedocs.io/llms.txt) · [llms-full.txt](https://django-testcontainers-plus.readthedocs.io/llms-full.txt)
+
 ## Why Django Testcontainers Plus?
 
 Testing Django applications often requires external services like PostgreSQL, Redis, or S3. Django Testcontainers Plus makes this effortless by:

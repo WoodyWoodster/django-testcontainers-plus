@@ -73,6 +73,17 @@ class MongoDBProvider(ContainerProvider):
 4. Add tests in `tests/test_mongodb_provider.py`
 5. Add documentation in `docs/pages/providers/mongodb.md`
 
+## Documentation
+
+Build the docs locally with:
+
+```bash
+uv sync --extra docs
+uv run mkdocs build
+```
+
+The build writes `site/llms.txt`, `site/llms-full.txt`, and Markdown copies of each page for coding agents. Read the Docs serves `llms.txt` and `llms-full.txt` from the project's default version at the documentation domain root.
+
 ## Submitting a Pull Request
 
 1. Fork the repository
