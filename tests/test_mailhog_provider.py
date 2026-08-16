@@ -305,7 +305,7 @@ class TestMailhogProvider:
                 "marketing": {
                     "BACKEND": "example.third.party.EmailBackend",
                 },
-            }
+            },
         )
 
         provider = MailhogProvider()
