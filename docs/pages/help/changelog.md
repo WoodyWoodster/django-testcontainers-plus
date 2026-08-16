@@ -5,14 +5,18 @@ All notable changes to this project will be documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.5] - Latest
+## [0.1.6] - Latest
 
 ### Changed
 - Require Django 5.2+ and declare support for Django 5.2, 6.0, and 6.1
-- Require `testcontainers>=4.15.0` and import Postgres, MySQL, and Redis containers from `testcontainers.community` to silence deprecation warnings
 
 ### Added
 - Mailhog auto-detection and settings updates for Django 6.1 `MAILERS`
+
+## [0.1.5]
+
+### Changed
+- Require `testcontainers>=4.15.0` and import Postgres, MySQL, and Redis containers from `testcontainers.community` to silence deprecation warnings
 
 ## [0.1.4]
 
